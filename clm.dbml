@@ -1,0 +1,196 @@
+// テナント管理
+Table "tenants" {
+  "id" SERIAL [pk]
+  "name" VARCHAR(255) [not null]
+  "subdomain" VARCHAR(63) [unique, not null]
+  "is_active" BOOLEAN [not null, default: true]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table "users" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "email" VARCHAR(255) [not null]
+  "encrypted_password" VARCHAR(255) [not null]
+  "reset_password_token" VARCHAR(255)
+  "reset_password_sent_at" TIMESTAMP
+  "remember_created_at" TIMESTAMP
+  "sign_in_count" INTEGER [not null, default: 0]
+  "current_sign_in_at" TIMESTAMP
+  "last_sign_in_at" TIMESTAMP
+  "current_sign_in_ip" VARCHAR(255)
+  "last_sign_in_ip" VARCHAR(255)
+  "confirmation_token" VARCHAR(255)
+  "confirmed_at" TIMESTAMP
+  "confirmation_sent_at" TIMESTAMP
+  "unconfirmed_email" VARCHAR(255)
+  "failed_attempts" INTEGER [not null, default: 0]
+  "unlock_token" VARCHAR(255)
+  "locked_at" TIMESTAMP
+  "first_name" VARCHAR(100)
+  "last_name" VARCHAR(100)
+  "is_active" BOOLEAN [not null, default: true]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (tenant_id, email) [unique]
+    reset_password_token [unique]
+    confirmation_token [unique]
+    unlock_token [unique]
+  }
+}
+
+Table "roles" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "name" VARCHAR(50) [not null]
+  "description" TEXT
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (tenant_id, name) [unique]
+  }
+}
+
+Table "user_roles" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "user_id" INTEGER [not null]
+  "role_id" INTEGER [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (tenant_id, user_id, role_id) [unique]
+  }
+}
+
+Table "contract_parties" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "company_code" VARCHAR(50)
+  "official_name" VARCHAR(255) [not null]
+  "trade_name" VARCHAR(255)
+  "address_id" INTEGER
+  "contact_person_id" INTEGER
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (tenant_id, company_code) [unique]
+  }
+}
+
+Table "contract_documents" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "file_name" VARCHAR(255) [not null]
+  "file_path" VARCHAR(255) [not null]
+  "uploaded_date" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "document_type" VARCHAR(50) [not null]
+  "processing_status" processing_status [not null]
+  "analysis_completion_date" TIMESTAMP
+  "responsible_user_id" INTEGER [not null]
+  "document_category" VARCHAR(50)
+  "contract_start_date" DATE
+  "contract_end_date" DATE
+  "party_a_id" INTEGER [not null]
+  "party_b_id" INTEGER [not null]
+  "transaction_amount" DECIMAL(15,2)
+  "currency" VARCHAR(3)
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "updated_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table "contract_versions" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "contract_document_id" INTEGER [not null]
+  "version_number" INTEGER [not null]
+  "file_name" VARCHAR(255) [not null]
+  "file_path" VARCHAR(255) [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+  "created_by" INTEGER [not null]
+
+  Indexes {
+    (tenant_id, contract_document_id, version_number) [unique]
+  }
+}
+
+Table "contract_clauses" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "contract_version_id" INTEGER [not null]
+  "clause_number" VARCHAR(20) [not null]
+  "clause_title" VARCHAR(255) [not null]
+  "clause_content" TEXT [not null]
+  "is_key_clause" BOOLEAN [not null, default: false]
+
+  Indexes {
+    (tenant_id, contract_version_id, clause_number) [unique]
+  }
+}
+
+Table "contract_comments" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "contract_version_id" INTEGER [not null]
+  "user_id" INTEGER [not null]
+  "comment_text" TEXT [not null]
+  "created_at" TIMESTAMP [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table "contract_workflows" {
+  "id" SERIAL [pk]
+  "tenant_id" INTEGER [not null]
+  "contract_document_id" INTEGER [not null]
+  "current_status" workflow_status [not null]
+  "current_assignee" INTEGER
+  "next_action_date" DATE
+}
+
+ENUM "processing_status" {
+  "updated_before_analysis"
+  "analyzing"
+  "analysis_success"
+  "analysis_failure"
+  "deleted"
+}
+
+ENUM "workflow_status" {
+  "draft"
+  "internal_review"
+  "external_review"
+  "negotiation"
+  "approval"
+  "signed"
+  "active"
+  "expired"
+  "terminated"
+}
+
+Ref:"tenants"."id" < "users"."tenant_id"
+Ref:"tenants"."id" < "roles"."tenant_id"
+Ref:"tenants"."id" < "user_roles"."tenant_id"
+Ref:"tenants"."id" < "contract_parties"."tenant_id"
+Ref:"tenants"."id" < "contract_documents"."tenant_id"
+Ref:"tenants"."id" < "contract_versions"."tenant_id"
+Ref:"tenants"."id" < "contract_clauses"."tenant_id"
+Ref:"tenants"."id" < "contract_comments"."tenant_id"
+Ref:"tenants"."id" < "contract_workflows"."tenant_id"
+
+Ref:"users"."id" < "user_roles"."user_id" [delete: cascade]
+Ref:"roles"."id" < "user_roles"."role_id" [delete: cascade]
+Ref:"contract_parties"."id" < "contract_documents"."party_a_id"
+Ref:"contract_parties"."id" < "contract_documents"."party_b_id"
+Ref:"users"."id" < "contract_documents"."responsible_user_id"
+Ref:"contract_documents"."id" < "contract_versions"."contract_document_id"
+Ref:"users"."id" < "contract_versions"."created_by"
+Ref:"contract_versions"."id" < "contract_clauses"."contract_version_id"
+Ref:"contract_versions"."id" < "contract_comments"."contract_version_id"
+Ref:"users"."id" < "contract_comments"."user_id"
+Ref:"contract_documents"."id" < "contract_workflows"."contract_document_id"
+Ref:"users"."id" < "contract_workflows"."current_assignee"
