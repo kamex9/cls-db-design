@@ -1,5 +1,5 @@
 CREATE TABLE `tenants` (
-  `id` SERIAL PRIMARY KEY COMMENT 'テナントの一意識別子',
+  `id` SERIAL PRIMARY KEY COMMENT '一意識別子',
   `name` VARCHAR(255) NOT NULL COMMENT 'テナント名',
   `subdomain` VARCHAR(63) NOT NULL UNIQUE COMMENT 'テナント固有のサブドメイン',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
@@ -7,7 +7,7 @@ CREATE TABLE `tenants` (
 ) COMMENT = 'テナント管理テーブル';
 
 CREATE TABLE `users` (
-  `id` SERIAL PRIMARY KEY COMMENT 'ユーザーの一意識別子',
+  `id` SERIAL PRIMARY KEY COMMENT '一意識別子',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `email` VARCHAR(255) NOT NULL UNIQUE COMMENT 'ユーザーのメールアドレス',
   `encrypted_password` VARCHAR(255) NOT NULL COMMENT '暗号化されたパスワード',
