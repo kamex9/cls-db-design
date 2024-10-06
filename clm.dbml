@@ -112,6 +112,8 @@ Table "projects" {
   "description" TEXT [note: '案件概要']
   "email" VARCHAR(255) [note: '案件のメールアドレス']
   "desired_deadline_date" DATE [note: '希望期限']
+  "start_datetime" DATETIME [note: '開始日時']
+  "end_datetime" DATETIME [note: '終了日時']
   Note: '案件'
 }
 
