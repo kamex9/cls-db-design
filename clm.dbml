@@ -1,15 +1,61 @@
-// ===========================================================
-// 共通マスター
-// ===========================================================
+
 Table "tenants" {
-  "id" SERIAL [pk, note: 'テナントID']
+  "id" SERIAL [pk, note: '一意識別子']
   "name" VARCHAR(255) [not null, note: 'テナント名']
   "subdomain" VARCHAR(63) [unique, not null, note: 'テナント固有のサブドメイン']
+  "description" TEXT [note: 'テナントの説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: 'テナント'
 }
 
+Table "contract_document_processing_statuses" {
+  "id" SERIAL [pk, note: '処理ステータスID']
+  "name" VARCHAR(50) [unique, not null, note: '処理ステータス名']
+  "description" TEXT [note: '処理ステータスの説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+  Note: '契約書処理ステータス'
+}
+
+Table "contract_categories" {
+  "id" SERIAL [pk, note: '契約分類ID']
+  "name" VARCHAR(255) [not null, note: '契約分類名称']
+  "description" TEXT [note: '契約分類の説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+  Note: '契約分類'
+}
+
+Table "project_statuses" {
+  "id" SERIAL [pk, note: '案件ステータスID']
+  "name" VARCHAR(50) [unique, not null, note: '案件ステータス名']
+  "description" TEXT [note: '案件ステータスの説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+  Note: '案件ステータス'
+}
+
+Table "project_event_types" {
+  "id" SERIAL [pk, note: '案件イベント種別ID']
+  "name" VARCHAR(50) [unique, not null, note: '案件イベント種別名']
+  "description" TEXT [note: '案件イベント種別の説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+  Note: '案件イベント種別'
+}
+
+Table "project_assignment_types" {
+  "id" SERIAL [pk, note: '案件アサイン種別ID']
+  "name" VARCHAR(50) [unique, not null, note: '案件アサイン種別名']
+  "description" TEXT [note: '案件アサイン種別の説明']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+  Note: '案件アサイン種別'
+}
+
 Table "users" {
-  "id" SERIAL [pk, note: 'ユーザーID']
+  "id" SERIAL [pk, note: '一意識別子']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "email" VARCHAR(255) [unique, not null, note: 'ユーザーのメールアドレス']
   "encrypted_password" VARCHAR(255) [not null, note: '暗号化されたパスワード']
@@ -18,6 +64,8 @@ Table "users" {
   "first_name" VARCHAR(100) [note: 'ユーザーの名']
   "last_name" VARCHAR(100) [note: 'ユーザーの姓']
   "department_id" BIGINT [not null, note: '所属部署ID']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: 'ユーザー'
 }
 
@@ -25,6 +73,8 @@ Table "departments" {
   "id" SERIAL [pk, note: '部署ID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "name" VARCHAR(255) [not null, note: '部署名称']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: '部署'
 }
 
@@ -34,51 +84,59 @@ Table "counterparties" {
   "company_code" VARCHAR(31) [not null, note: '企業コード']
   "official_name" VARCHAR(255) [not null, note: '企業名（正式名称）']
   "trade_name" VARCHAR(255) [note: '企業名（商号）']
-  // 自社も含めるべきかは要検討
-  "is_self" BOOLEAN [not null, note: '自社フラグ', default: false]
+  "is_self" BOOLEAN [not null, default: false, note: '自社フラグ']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: '取引先'
-}
-
-// ===========================================================
-// 契約DB
-// ===========================================================
-Table "document_categories" {
-  "id" SERIAL [pk, note: '文書分類ID']
-  "tenant_id" BIGINT [not null, note: '所属テナントID']
-  "name" VARCHAR(255) [not null, note: '分類名称']
-  // "ancestry" VARCHAR(31) [note: '祖先に該当する文書分類IDを半角スラッシュ区切りで階層表現する文字列']
-  Note: '文書分類'
 }
 
 Table "contract_documents" {
   "id" SERIAL [pk, note: '契約書ID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
-  // projects側でも保持しているが、ここではAI解析結果としてあえて冗長に持たせる
-  "counterparty_id" BIGINT [note: '取引先ID']
   "file_name" VARCHAR(255) [not null, note: 'ファイル名']
   "file_path" VARCHAR(255) [not null, note: 'サーバー上のファイルパス']
-  "is_fixed" BOOLEAN [not null, note: '締結版フラグ', default: false]
-  "processing_status" processing_status [not null, note: '処理ステータス', default: "before_analysis"]
+  "body" TEXT [not null, note: '契約書内容']
+  "is_fixed" BOOLEAN [not null, default: false, note: '締結版フラグ']
+  "processing_status_id" BIGINT [not null, note: '処理ステータスID']
   "analysis_completed_at" DATETIME [note: '解析完了日時']
   "assignee_user_id" BIGINT [note: '契約書担当ユーザーID']
   "contract_start_date" DATE [note: '契約開始日']
   "contract_end_date" DATE [note: '契約終了日']
   "contract_amount" DECIMAL(15,2) [note: '契約金額']
-  "contract_fixed_date" DATETIME [note: '契約締結日']
+  "contract_fixed_date" DATE [note: '契約締結日']
   "deleted_at" DATETIME [note: '削除日時']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: '契約書'
+}
+
+Table "contract_document_counterparties" {
+  "id" SERIAL [pk, note: '契約書取引先ID']
+  "tenant_id" BIGINT [not null, note: '所属テナントID']
+  "contract_document_id" BIGINT [not null, note: '契約書ID']
+  "counterparty_id" BIGINT [not null, note: '取引先ID']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+
+  Indexes {
+    (contract_document_id, counterparty_id) [unique, name: "contract_document_counterparties_index_0"]
+  }
+  Note: '契約書と取引先の関係'
 }
 
 Table "contract_document_categories" {
   "id" SERIAL [pk, note: '契約書と文書分類の組み合わせID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "contract_document_id" BIGINT [not null, note: '契約書ID']
-  "document_category_id" BIGINT [not null, note: '契約書分類ID']
-  indexes {
-    (contract_document_id, document_category_id) [unique]
+  "contract_category_id" BIGINT [not null, note: '契約分類ID']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+
+  Indexes {
+    (contract_document_id, contract_category_id) [unique, name: "contract_document_categories_index_0"]
   }
-  Note: '契約書と文書分類の組み合わせ'
+  Note: '契約書と文書分類の関係'
 }
 
 Table "contract_document_articles" {
@@ -87,60 +145,43 @@ Table "contract_document_articles" {
   "contract_document_id" BIGINT [not null, note: '契約書ID']
   "number" BIGINT [not null, note: '条番号']
   "title" VARCHAR(255) [not null, note: '条タイトル']
-  indexes {
-    (contract_document_id, number) [unique]
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+
+  Indexes {
+    (contract_document_id, number) [unique, name: "contract_document_articles_index_0"]
   }
   Note: '契約書条項の条部'
 }
 
-ENUM "processing_status" {
-  "before_analysis"
-  "analyzing"
-  "analysis_success"
-  "analysis_failure"
-}
-
-// ===========================================================
-// 案件管理
-// ===========================================================
 Table "projects" {
   "id" SERIAL [pk, note: '案件ID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "counterparty_id" BIGINT [not null, note: '取引先ID']
   "name" VARCHAR(255) [not null, note: '案件名称']
-  "status" project_status [not null, note: '案件状況', default: "to_do"]
+  "status_id" BIGINT [not null, note: '案件ステータスID']
+  "created_by" BIGINT [not null, note: '作成者ユーザーID']
   "description" TEXT [note: '案件概要']
   "email" VARCHAR(255) [note: '案件のメールアドレス']
   "desired_deadline_date" DATE [note: '希望期限']
-  "start_datetime" DATETIME [note: '開始日時']
-  "end_datetime" DATETIME [note: '終了日時']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: '案件'
 }
 
-ENUM "project_status" {
-  "to_do"
-  "in_progress"
-  "in_review"
-  "closed_as_completed"
-  "closed_as_rejected"
-}
-
 Table "project_assignments" {
-  "id" SERIAL [pk, note: '案件ユーザーID']
+  "id" SERIAL [pk, note: '案件アサインID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
   "user_id" BIGINT [not null, note: 'ユーザーID']
-  "role" project_assignments_role [not null, note: '役割種別']
-  indexes {
-    (project_id, user_id, role) [unique]
-  }
-  Note: '案件ユーザー'
-}
+  "type_id" BIGINT [not null, note: '案件アサイン種別ID']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
 
-ENUM "project_assignments_role" {
-  "assignee"
-  "requester"
-  "participant"
+  Indexes {
+    (project_id, user_id, type_id) [unique, name: "project_assignments_index_0"]
+  }
+  Note: '案件アサイン'
 }
 
 Table "project_events" {
@@ -148,59 +189,59 @@ Table "project_events" {
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
   "created_by" BIGINT [not null, note: '作成者ユーザーID']
-  "type" project_events_type [not null, note: 'イベント種別']
+  "type_id" BIGINT [not null, note: '案件イベント種別ID']
   "comment_body" TEXT [note: 'コメント内容']
   "mail_body" TEXT [note: 'メール内容']
-  "old_status" project_status [note: '案件状況（変更前）']
-  "new_status" project_status [note: '案件状況（変更後）']
+  "old_status_id" BIGINT [note: '案件ステータス（変更前）']
+  "new_status_id" BIGINT [note: '案件ステータス（変更後）']
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
   Note: '案件イベント'
-}
-
-ENUM "project_events_type" {
-  "open"
-  "open_with_attachments"
-  "upload_as_draft"
-  "upload_as_fixed"
-  "comment"
-  "comment_with_attachments"
-  "mail"
-  "change_status"
 }
 
 Table "project_event_attachments" {
-  "id" SERIAL [pk, note: '案件イベントID']
+  "id" SERIAL [pk, note: '案件イベント添付ID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_event_id" BIGINT [not null, note: '案件イベントID']
   "contract_document_id" BIGINT [note: 'アップロードされた契約書ID']
-  indexes {
-    (project_event_id, contract_document_id) [unique]
+  "created_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '作成日時']
+  "updated_at" DATETIME [not null, default: `CURRENT_TIMESTAMP`, note: '更新日時']
+
+  Indexes {
+    (project_event_id, contract_document_id) [unique, name: "project_event_attachments_index_0"]
   }
-  Note: '案件イベント'
+  Note: '案件イベント添付'
 }
 
-// ===========================================================
-// 外部キー参照
-// ===========================================================
 Ref:"tenants"."id" < "users"."tenant_id" [delete: cascade]
+Ref:"departments"."id" < "users"."department_id"
 Ref:"tenants"."id" < "departments"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "counterparties"."tenant_id" [delete: cascade]
-Ref:"tenants"."id" < "document_categories"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "contract_documents"."tenant_id" [delete: cascade]
+Ref:"projects"."id" < "contract_documents"."project_id"
+Ref:"users"."id" < "contract_documents"."assignee_user_id"
+Ref:"contract_document_processing_statuses"."id" < "contract_documents"."processing_status_id"
+Ref:"tenants"."id" < "contract_document_counterparties"."tenant_id" [delete: cascade]
+Ref:"contract_documents"."id" < "contract_document_counterparties"."contract_document_id"
+Ref:"counterparties"."id" < "contract_document_counterparties"."counterparty_id"
 Ref:"tenants"."id" < "contract_document_categories"."tenant_id" [delete: cascade]
+Ref:"contract_documents"."id" < "contract_document_categories"."contract_document_id"
+Ref:"contract_categories"."id" < "contract_document_categories"."contract_category_id"
+Ref:"tenants"."id" < "contract_document_articles"."tenant_id" [delete: cascade]
+Ref:"contract_documents"."id" < "contract_document_articles"."contract_document_id"
 Ref:"tenants"."id" < "projects"."tenant_id" [delete: cascade]
+Ref:"counterparties"."id" < "projects"."counterparty_id"
+Ref:"project_statuses"."id" < "projects"."status_id"
 Ref:"tenants"."id" < "project_assignments"."tenant_id" [delete: cascade]
+Ref:"projects"."id" < "project_assignments"."project_id"
+Ref:"users"."id" < "project_assignments"."user_id"
+Ref:"project_assignment_types"."id" < "project_assignments"."type_id"
 Ref:"tenants"."id" < "project_events"."tenant_id" [delete: cascade]
-Ref:"departments"."id" < "users"."department_id" [delete: cascade]
-Ref:"projects"."id" < "contract_documents"."project_id" [delete: cascade]
-Ref:"projects"."id" < "project_assignments"."project_id" [delete: cascade]
-Ref:"projects"."id" < "project_events"."project_id" [delete: cascade]
-Ref:"counterparties"."id" < "contract_documents"."counterparty_id" [delete: cascade]
-Ref:"counterparties"."id" < "projects"."counterparty_id" [delete: cascade]
-Ref:"users"."id" < "contract_documents"."assignee_user_id" [delete: cascade]
-Ref:"users"."id" < "project_assignments"."user_id" [delete: cascade]
-Ref:"users"."id" < "project_events"."created_by" [delete: cascade]
-Ref:"contract_documents"."id" < "contract_document_categories"."contract_document_id" [delete: cascade]
-Ref:"contract_documents"."id" < "contract_document_articles"."contract_document_id" [delete: cascade]
-Ref:"contract_documents"."id" < "project_event_attachments"."contract_document_id" [delete: cascade]
-Ref:"document_categories"."id" < "contract_document_categories"."document_category_id" [delete: cascade]
-Ref:"project_events"."id" < "project_event_attachments"."project_event_id" [delete: cascade]
+Ref:"projects"."id" < "project_events"."project_id"
+Ref:"users"."id" < "project_events"."created_by"
+Ref:"project_event_types"."id" < "project_events"."type_id"
+Ref:"project_statuses"."id" < "project_events"."old_status_id"
+Ref:"project_statuses"."id" < "project_events"."new_status_id"
+Ref:"tenants"."id" < "project_event_attachments"."tenant_id" [delete: cascade]
+Ref:"project_events"."id" < "project_event_attachments"."project_event_id"
+Ref:"contract_documents"."id" < "project_event_attachments"."contract_document_id"
