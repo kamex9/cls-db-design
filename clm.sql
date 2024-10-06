@@ -122,7 +122,7 @@ CREATE TABLE `contract_document_categories` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書と文書分類の組み合わせID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `contract_document_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書ID',
-  `contract_category_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書分類ID',
+  `contract_category_id` BIGINT UNSIGNED NOT NULL COMMENT '契約分類ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書と文書分類の関係';
