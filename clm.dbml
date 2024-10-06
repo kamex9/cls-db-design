@@ -126,7 +126,7 @@ Table "contract_document_counterparties" {
 }
 
 Table "contract_document_categories" {
-  "id" SERIAL [pk, note: '契約書と文書分類の組み合わせID']
+  "id" SERIAL [pk, note: '契約書と契約分類の組み合わせID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "contract_document_id" BIGINT [not null, note: '契約書ID']
   "contract_category_id" BIGINT [not null, note: '契約分類ID']
@@ -136,7 +136,7 @@ Table "contract_document_categories" {
   Indexes {
     (contract_document_id, contract_category_id) [unique, name: "contract_document_categories_index_0"]
   }
-  Note: '契約書と文書分類の関係'
+  Note: '契約書と契約分類の関係'
 }
 
 Table "contract_document_articles" {
