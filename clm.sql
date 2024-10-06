@@ -165,6 +165,3 @@ ALTER TABLE `project_events` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
-
--- その他制約の追加
-ALTER TABLE `counterparties` ADD CONSTRAINT `unique_self_counterparty` UNIQUE (`tenant_id`, (CASE WHEN `is_self` = TRUE THEN `id` END));
