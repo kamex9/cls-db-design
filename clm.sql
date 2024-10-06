@@ -137,6 +137,7 @@ CREATE TABLE `project_event_attachements` (
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `document_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_1` ON `contract_document_articles` (`contract_document_id`, `number`);
 CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role`);
+CREATE UNIQUE INDEX `project_event_attachements_index_3` ON `project_event_attachements` (`project_event_id`, `contract_document_id`);
 
 -- 外部キー制約の追加
 ALTER TABLE `users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
@@ -164,3 +165,6 @@ ALTER TABLE `project_events` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
 ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
+
+-- その他制約の追加
+ALTER TABLE `counterparties` ADD CONSTRAINT `unique_self_counterparty` UNIQUE (`tenant_id`, (CASE WHEN `is_self` = TRUE THEN `id` END));

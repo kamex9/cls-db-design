@@ -172,6 +172,9 @@ Table "project_event_attachements" {
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_event_id" BIGINT [not null, note: '案件イベントID']
   "contract_document_id" BIGINT [note: 'アップロードされた契約書ID']
+  indexes {
+    (project_event_id, contract_document_id) [unique]
+  }
   Note: '案件イベント'
 }
 
