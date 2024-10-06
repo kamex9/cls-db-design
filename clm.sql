@@ -203,7 +203,6 @@ ALTER TABLE `users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON
 ALTER TABLE `users` ADD FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
 ALTER TABLE `departments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
-ALTER TABLE `document_categories` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`assignee_user_id`) REFERENCES `users` (`id`);
