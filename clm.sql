@@ -55,7 +55,7 @@ CREATE TABLE `contract_documents` (
   `file_name` VARCHAR(255) NOT NULL COMMENT 'ファイル名',
   `file_path` VARCHAR(255) NOT NULL COMMENT 'サーバー上のファイルパス',
   `is_fixed` BOOLEAN NOT NULL DEFAULT false COMMENT '締結版フラグ',
-  `processing_status` ENUM ('before_analysis', 'analyzing', 'analysis_success', 'analysis_failure') NOT NULL DEFAULT 'before_analysis' COMMENT '処理ステータス',
+  `processing_status_id` BIGINT UNSIGNED NOT NULL COMMENT '処理ステータスID',
   `analysis_completed_at` DATETIME COMMENT '解析完了日時',
   `assignee_user_id` BIGINT UNSIGNED COMMENT '契約書担当ユーザーID',
   `contract_start_date` DATE COMMENT '契約開始日',
@@ -66,6 +66,14 @@ CREATE TABLE `contract_documents` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書';
+
+CREATE TABLE `contract_document_processing_statuses` (
+  `id` SERIAL PRIMARY KEY COMMENT '処理ステータスID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '処理ステータス名',
+  `description` TEXT COMMENT '処理ステータスの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '契約書処理ステータス';
 
 CREATE TABLE `contract_document_categories` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書と文書分類の組み合わせID',
@@ -91,11 +99,11 @@ CREATE TABLE `projects` (
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `counterparty_id` BIGINT UNSIGNED NOT NULL COMMENT '取引先ID',
   `name` VARCHAR(255) NOT NULL COMMENT '案件名称',
-  `status` ENUM ('to_do', 'in_progress', 'in_review', 'closed_as_completed', 'closed_as_rejected') NOT NULL DEFAULT 'to_do' COMMENT '案件状況',
+  `status_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ステータスID',
+  `created_by` BIGINT UNSIGNED NOT NULL COMMENT '作成者ユーザーID',
   `description` TEXT COMMENT '案件概要',
   `email` VARCHAR(255) COMMENT '案件のメールアドレス',
-  `start_datetime` DATETIME COMMENT '開始日時',
-  `end_datetime` DATETIME COMMENT '終了日時',
+  `desired_deadline_date` DATE COMMENT '希望期限',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件';
@@ -105,7 +113,7 @@ CREATE TABLE `project_users` (
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT 'ユーザーID',
-  `role` ENUM ('assignee', 'requester', 'participant') NOT NULL COMMENT '役割種別',
+  `role_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ユーザー役割ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件ユーザー';
@@ -115,14 +123,15 @@ CREATE TABLE `project_events` (
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `created_by` BIGINT UNSIGNED NOT NULL COMMENT '作成者ユーザーID',
-  `type` ENUM ('open', 'open_with_attachments', 'upload_as_draft', 'upload_as_fixed', 'comment', 'comment_with_attachments', 'mail', 'change_status') NOT NULL COMMENT '案件イベント種別',
+  `type_id` BIGINT UNSIGNED NOT NULL COMMENT '案件イベントタイプID',
   `comment_body` TEXT COMMENT 'コメント内容',
   `mail_body` TEXT COMMENT 'メール内容',
-  `old_status` ENUM ('to_do', 'in_progress', 'in_review', 'closed_as_completed', 'closed_as_rejected') COMMENT '案件状況（変更前）',
-  `new_status` ENUM ('to_do', 'in_progress', 'in_review', 'closed_as_completed', 'closed_as_rejected') COMMENT '案件状況（変更後）',
+  `old_status_id` BIGINT UNSIGNED COMMENT '案件ステータス（変更前）',
+  `new_status_id` BIGINT UNSIGNED COMMENT '案件ステータス（変更後）',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベント';
+
 
 CREATE TABLE `project_event_attachments` (
   `id` SERIAL PRIMARY KEY COMMENT '案件イベント添付ID',
@@ -133,10 +142,34 @@ CREATE TABLE `project_event_attachments` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベント添付';
 
+CREATE TABLE `project_statuses` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件ステータスID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ステータス名',
+  `description` TEXT COMMENT '案件ステータスの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件ステータス';
+
+CREATE TABLE `project_user_roles` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件ユーザー役割ID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ユーザー役割名',
+  `description` TEXT COMMENT '案件ユーザー役割の説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件ユーザー役割';
+
+CREATE TABLE `project_event_types` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件イベントタイプID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件イベントタイプ名',
+  `description` TEXT COMMENT '案件イベントタイプの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件イベントタイプ';
+
 -- インデックスの作成
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `document_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_1` ON `contract_document_articles` (`contract_document_id`, `number`);
-CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role`);
+CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role_id`);
 CREATE UNIQUE INDEX `project_event_attachments_index_3` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
 -- 外部キー制約の追加
@@ -149,6 +182,7 @@ ALTER TABLE `contract_documents` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenan
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`assignee_user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `contract_documents` ADD FOREIGN KEY (`processing_status_id`) REFERENCES `contract_document_processing_statuses` (`id`);
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`document_category_id`) REFERENCES `document_categories` (`id`);
@@ -156,12 +190,49 @@ ALTER TABLE `contract_document_articles` ADD FOREIGN KEY (`tenant_id`) REFERENCE
 ALTER TABLE `contract_document_articles` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 ALTER TABLE `projects` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `projects` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
+ALTER TABLE `projects` ADD FOREIGN KEY (`status_id`) REFERENCES `project_statuses` (`id`);
 ALTER TABLE `project_users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_users` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `project_users` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `project_users` ADD FOREIGN KEY (`role_id`) REFERENCES `project_user_roles` (`id`);
 ALTER TABLE `project_events` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_events` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `project_events` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
+ALTER TABLE `project_events` ADD FOREIGN KEY (`type_id`) REFERENCES `project_event_types` (`id`);
+ALTER TABLE `project_events` ADD FOREIGN KEY (`old_status_id`) REFERENCES `project_statuses` (`id`);
+ALTER TABLE `project_events` ADD FOREIGN KEY (`new_status_id`) REFERENCES `project_statuses` (`id`);
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
+
+-- -- 契約書処理ステータスの初期データ
+-- INSERT INTO `contract_document_processing_statuses` (`name`, `description`) VALUES
+-- ('before_analysis', '解析前'),
+-- ('analyzing', '解析中'),
+-- ('analysis_success', '解析成功'),
+-- ('analysis_failure', '解析失敗');
+
+-- -- 案件ステータスの初期データ
+-- INSERT INTO `project_statuses` (`name`, `description`) VALUES
+-- ('to_do', '未着手'),
+-- ('in_progress', '進行中'),
+-- ('in_review', 'レビュー中'),
+-- ('closed_as_completed', '終了（成功）'),
+-- ('closed_as_rejected', '終了（却下）');
+
+-- -- 案件ユーザー役割の初期データ
+-- INSERT INTO `project_user_roles` (`name`, `description`) VALUES
+-- ('assignee', '担当者'),
+-- ('requester', '依頼者'),
+-- ('participant', '関係者');
+
+-- -- 案件イベントタイプの初期データ
+-- INSERT INTO `project_event_types` (`name`, `description`) VALUES
+-- ('open', '案件オープン'),
+-- ('open_with_attachments', '添付ファイル付き案件オープン'),
+-- ('upload_as_draft', 'ドラフト版をアップロード'),
+-- ('upload_as_fixed', '締結版をアップロード'),
+-- ('comment', 'コメント'),
+-- ('comment_with_attachments', '添付ファイル付きコメント'),
+-- ('mail', 'メール受信'),
+-- ('change_status', '案件ステータス変更');
