@@ -75,7 +75,7 @@ INSERT INTO `project_event_types` (`name`, `description`) VALUES
 ```
 
 
-## テナント単位共通マスター情報
+## テナント単位 共通マスター情報
 ```
 users
 ```
@@ -93,8 +93,8 @@ counterparties
 ```
 自社も含めた契約書の当事者を「取引先」とみなして一括管理する設計とした。  
 `is_self`が`true`のレコードはテナント単位でユニークとなるような制約を定義するのが安全であるが、  
-MySQLでは制約定義が煩雑となるようである。（制約のためのカラム追加が必要らしい）  
-よって実運用では
+少なくともMySQLでは制約定義が煩雑となるようである。（制約のためのカラム追加が必要らしい）  
+よって実運用では制約定義を断念し、
 ```
 SELECT tenant_id, COUNT(*) as self_count 
 FROM counterparties 
