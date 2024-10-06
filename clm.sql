@@ -1,3 +1,6 @@
+-- ===========================================================================
+-- 共通
+-- ===========================================================================
 CREATE TABLE `tenants` (
   `id` SERIAL PRIMARY KEY COMMENT '一意識別子',
   `name` VARCHAR(255) NOT NULL COMMENT 'テナント名',
@@ -39,6 +42,9 @@ CREATE TABLE `counterparties` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '取引先';
 
+-- ===========================================================================
+-- 契約DB
+-- ===========================================================================
 CREATE TABLE `document_categories` (
   `id` SERIAL PRIMARY KEY COMMENT '文書分類ID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -94,6 +100,9 @@ CREATE TABLE `contract_document_articles` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書条項の条部';
 
+-- ===========================================================================
+-- 案件管理
+-- ===========================================================================
 CREATE TABLE `projects` (
   `id` SERIAL PRIMARY KEY COMMENT '案件ID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -132,7 +141,6 @@ CREATE TABLE `project_events` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベント';
 
-
 CREATE TABLE `project_event_attachments` (
   `id` SERIAL PRIMARY KEY COMMENT '案件イベント添付ID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -166,13 +174,17 @@ CREATE TABLE `project_event_types` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベントタイプ';
 
--- インデックスの作成
+-- ===========================================================================
+-- インデックス
+-- ===========================================================================
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `document_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_1` ON `contract_document_articles` (`contract_document_id`, `number`);
 CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role_id`);
 CREATE UNIQUE INDEX `project_event_attachments_index_3` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
--- 外部キー制約の追加
+-- ===========================================================================
+-- 外部キー制約
+-- ===========================================================================
 ALTER TABLE `users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `users` ADD FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
 ALTER TABLE `departments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
@@ -205,14 +217,15 @@ ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`tenant_id`) REFERENCES
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 
--- -- 契約書処理ステータスの初期データ
+-- ===========================================================================
+-- 初期データ登録
+-- ===========================================================================
 -- INSERT INTO `contract_document_processing_statuses` (`name`, `description`) VALUES
 -- ('before_analysis', '解析前'),
 -- ('analyzing', '解析中'),
 -- ('analysis_success', '解析成功'),
 -- ('analysis_failure', '解析失敗');
 
--- -- 案件ステータスの初期データ
 -- INSERT INTO `project_statuses` (`name`, `description`) VALUES
 -- ('to_do', '未着手'),
 -- ('in_progress', '進行中'),
@@ -220,13 +233,11 @@ ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`contract_document_id`)
 -- ('closed_as_completed', '終了（成功）'),
 -- ('closed_as_rejected', '終了（却下）');
 
--- -- 案件ユーザー役割の初期データ
 -- INSERT INTO `project_user_roles` (`name`, `description`) VALUES
 -- ('assignee', '担当者'),
 -- ('requester', '依頼者'),
 -- ('participant', '関係者');
 
--- -- 案件イベントタイプの初期データ
 -- INSERT INTO `project_event_types` (`name`, `description`) VALUES
 -- ('open', '案件オープン'),
 -- ('open_with_attachments', '添付ファイル付き案件オープン'),
