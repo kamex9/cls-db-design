@@ -86,7 +86,7 @@ Table "contract_document_articles" {
   indexes {
     (contract_document_id, number) [unique]
   }
-  Note: '契約書の条'
+  Note: '契約書条項の条部'
 }
 
 ENUM "processing_status" {
