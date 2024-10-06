@@ -95,7 +95,7 @@ CREATE TABLE `contract_documents` (
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `file_name` VARCHAR(255) NOT NULL COMMENT 'ファイル名',
   `file_path` VARCHAR(255) NOT NULL COMMENT 'サーバー上のファイルパス',
-  `body` TEXT NOT NULL COMMENT '契約書内容',
+  `body` LONGTEXT NOT NULL COMMENT '契約書内容',
   `is_fixed` BOOLEAN NOT NULL DEFAULT false COMMENT '締結版フラグ',
   `processing_status_id` BIGINT UNSIGNED NOT NULL COMMENT '処理ステータスID',
   `analysis_completed_at` DATETIME COMMENT '解析完了日時',
