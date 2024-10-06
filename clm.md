@@ -120,6 +120,7 @@ contract_document_articles
 - 契約書の取引金額について、日本円以外の考慮が不要であることはQA確認済み。
 - 契約書の取引金額について、1兆円未満までを小数点2位まで考慮。
 - `contract_documents.body` はTEXT型上限65,535バイトを超える可能性があるためLONGTEXT型で定義。
+- 条項リストについては、画面では「条」のみの表示であったため `contract_document_articles` のみ用意。項以降が必要の場合は `contract_document_paragraphs`, `contract_document_items` 等を追加する想定。
 
 ## テナント単位 案件管理
 ```
