@@ -115,7 +115,7 @@ CREATE TABLE `project_events` (
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `created_by` BIGINT UNSIGNED NOT NULL COMMENT '作成者ユーザーID',
-  `type` ENUM ('open', 'open_with_attachements', 'upload_as_draft', 'upload_as_fixed', 'comment', 'comment_with_attachements', 'mail', 'change_status') NOT NULL COMMENT '案件イベント種別',
+  `type` ENUM ('open', 'open_with_attachments', 'upload_as_draft', 'upload_as_fixed', 'comment', 'comment_with_attachments', 'mail', 'change_status') NOT NULL COMMENT '案件イベント種別',
   `comment_body` TEXT COMMENT 'コメント内容',
   `mail_body` TEXT COMMENT 'メール内容',
   `old_status` ENUM ('to_do', 'in_progress', 'in_review', 'closed_as_completed', 'closed_as_rejected') COMMENT '案件状況（変更前）',
@@ -124,7 +124,7 @@ CREATE TABLE `project_events` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベント';
 
-CREATE TABLE `project_event_attachements` (
+CREATE TABLE `project_event_attachments` (
   `id` SERIAL PRIMARY KEY COMMENT '案件イベント添付ID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_event_id` BIGINT UNSIGNED NOT NULL COMMENT '案件イベントID',
@@ -137,7 +137,7 @@ CREATE TABLE `project_event_attachements` (
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `document_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_1` ON `contract_document_articles` (`contract_document_id`, `number`);
 CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role`);
-CREATE UNIQUE INDEX `project_event_attachements_index_3` ON `project_event_attachements` (`project_event_id`, `contract_document_id`);
+CREATE UNIQUE INDEX `project_event_attachments_index_3` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
 -- 外部キー制約の追加
 ALTER TABLE `users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
@@ -162,6 +162,6 @@ ALTER TABLE `project_users` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`
 ALTER TABLE `project_events` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_events` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `project_events` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
-ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
-ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
-ALTER TABLE `project_event_attachements` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
+ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
+ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);

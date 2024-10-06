@@ -158,16 +158,16 @@ Table "project_events" {
 
 ENUM "project_events_type" {
   "open"
-  "open_with_attachements"
+  "open_with_attachments"
   "upload_as_draft"
   "upload_as_fixed"
   "comment"
-  "comment_with_attachements"
+  "comment_with_attachments"
   "mail"
   "change_status"
 }
 
-Table "project_event_attachements" {
+Table "project_event_attachments" {
   "id" SERIAL [pk, note: '案件イベントID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_event_id" BIGINT [not null, note: '案件イベントID']
@@ -201,6 +201,6 @@ Ref:"users"."id" < "project_users"."user_id" [delete: cascade]
 Ref:"users"."id" < "project_events"."created_by" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_categories"."contract_document_id" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_articles"."contract_document_id" [delete: cascade]
-Ref:"contract_documents"."id" < "project_event_attachements"."contract_document_id" [delete: cascade]
+Ref:"contract_documents"."id" < "project_event_attachments"."contract_document_id" [delete: cascade]
 Ref:"document_categories"."id" < "contract_document_categories"."document_category_id" [delete: cascade]
-Ref:"project_events"."id" < "project_event_attachements"."project_event_id" [delete: cascade]
+Ref:"project_events"."id" < "project_event_attachments"."project_event_id" [delete: cascade]
