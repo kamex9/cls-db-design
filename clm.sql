@@ -232,34 +232,3 @@ ALTER TABLE `project_events` ADD FOREIGN KEY (`new_status_id`) REFERENCES `proje
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`project_event_id`) REFERENCES `project_events` (`id`);
 ALTER TABLE `project_event_attachments` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
-
--- ===========================================================================
--- 初期データ登録
--- ===========================================================================
--- INSERT INTO `contract_document_processing_statuses` (`name`, `description`) VALUES
--- ('before_analysis', '解析前'),
--- ('analyzing', '解析中'),
--- ('analysis_success', '解析成功'),
--- ('analysis_failure', '解析失敗');
-
--- INSERT INTO `project_statuses` (`name`, `description`) VALUES
--- ('to_do', '未着手'),
--- ('in_progress', '進行中'),
--- ('in_review', 'レビュー中'),
--- ('closed_as_completed', '終了（成功）'),
--- ('closed_as_rejected', '終了（却下）');
-
--- INSERT INTO `project_user_roles` (`name`, `description`) VALUES
--- ('assignee', '担当者'),
--- ('requester', '依頼者'),
--- ('participant', '関係者');
-
--- INSERT INTO `project_event_types` (`name`, `description`) VALUES
--- ('open', '案件オープン'),
--- ('open_with_attachments', '添付ファイル付き案件オープン'),
--- ('upload_as_draft', 'ドラフト版をアップロード'),
--- ('upload_as_fixed', '締結版をアップロード'),
--- ('comment', 'コメント'),
--- ('comment_with_attachments', '添付ファイル付きコメント'),
--- ('mail', 'メール受信'),
--- ('change_status', '案件ステータス変更');
