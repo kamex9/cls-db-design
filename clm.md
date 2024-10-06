@@ -20,7 +20,7 @@ tenants
 ### システム共通マスター情報
 ```
 contract_document_processing_statuses
-document_categories
+contract_categories
 project_statuses
 project_event_types
 project_user_roles
@@ -41,6 +41,15 @@ INSERT INTO `contract_document_processing_statuses` (`name`, `description`) VALU
 ('analyzing', '解析中'),
 ('analysis_success', '解析成功'),
 ('analysis_failure', '解析失敗');
+
+INSERT INTO `contract_categories` (`name`, `description`) VALUES
+('業務委託契約', '特定の業務やサービスの提供を外部に委託する際に締結する契約'),
+('取引基本契約', '継続的な取引関係における基本的な条件を定める契約'),
+('秘密保持契約', '機密情報の取り扱いや保護に関する合意を定める契約'),
+('売買契約', '商品やサービスの売買に関する条件を定める契約'),
+('賃貸借契約', '不動産や設備などの賃貸に関する条件を定める契約'),
+('雇用契約', '雇用者と被雇用者の間で締結される労働条件を定める契約'),
+('ライセンス契約', '知的財産権の使用許諾に関する条件を定める契約');
 
 INSERT INTO `project_statuses` (`name`, `description`) VALUES
 ('to_do', '未着手'),
