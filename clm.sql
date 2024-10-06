@@ -18,6 +18,14 @@ CREATE TABLE `contract_document_processing_statuses` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書処理ステータス';
 
+CREATE TABLE `document_categories` (
+  `id` SERIAL PRIMARY KEY COMMENT '文書分類ID',
+  `name` VARCHAR(255) NOT NULL COMMENT '文書分類名称',
+  `description` TEXT COMMENT '文書分類の説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '文書分類';
+
 CREATE TABLE `project_statuses` (
   `id` SERIAL PRIMARY KEY COMMENT '案件ステータスID',
   `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ステータス名',
@@ -81,21 +89,13 @@ CREATE TABLE `counterparties` (
 -- ===========================================================================
 -- 契約DB
 -- ===========================================================================
-CREATE TABLE `document_categories` (
-  `id` SERIAL PRIMARY KEY COMMENT '文書分類ID',
-  `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
-  `name` VARCHAR(255) NOT NULL COMMENT '分類名称',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '文書分類';
-
 CREATE TABLE `contract_documents` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書ID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
-  `counterparty_id` BIGINT UNSIGNED COMMENT '取引先ID',
   `file_name` VARCHAR(255) NOT NULL COMMENT 'ファイル名',
   `file_path` VARCHAR(255) NOT NULL COMMENT 'サーバー上のファイルパス',
+  `body` TEXT NOT NULL COMMENT '契約書内容',
   `is_fixed` BOOLEAN NOT NULL DEFAULT false COMMENT '締結版フラグ',
   `processing_status_id` BIGINT UNSIGNED NOT NULL COMMENT '処理ステータスID',
   `analysis_completed_at` DATETIME COMMENT '解析完了日時',
@@ -109,6 +109,15 @@ CREATE TABLE `contract_documents` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書';
 
+CREATE TABLE `contract_document_counterparties` (
+  `id` SERIAL PRIMARY KEY COMMENT '契約書取引先ID',
+  `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
+  `contract_document_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書ID',
+  `counterparty_id` BIGINT UNSIGNED NOT NULL COMMENT '取引先ID',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '契約書と取引先の関係';
+
 CREATE TABLE `contract_document_categories` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書と文書分類の組み合わせID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -116,7 +125,7 @@ CREATE TABLE `contract_document_categories` (
   `document_category_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書分類ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '契約書と文書分類の組み合わせ';
+) COMMENT = '契約書と文書分類の関係';
 
 CREATE TABLE `contract_document_articles` (
   `id` SERIAL PRIMARY KEY COMMENT '条ID',
@@ -181,10 +190,11 @@ CREATE TABLE `project_event_attachments` (
 -- ===========================================================================
 -- インデックス
 -- ===========================================================================
+CREATE UNIQUE INDEX `contract_document_counterparties_index_0` ON `contract_document_counterparties` (`contract_document_id`, `counterparty_id`);
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `document_category_id`);
-CREATE UNIQUE INDEX `contract_document_articles_index_1` ON `contract_document_articles` (`contract_document_id`, `number`);
-CREATE UNIQUE INDEX `project_users_index_2` ON `project_users` (`project_id`, `user_id`, `role_id`);
-CREATE UNIQUE INDEX `project_event_attachments_index_3` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
+CREATE UNIQUE INDEX `contract_document_articles_index_0` ON `contract_document_articles` (`contract_document_id`, `number`);
+CREATE UNIQUE INDEX `project_users_index_0` ON `project_users` (`project_id`, `user_id`, `role_id`);
+CREATE UNIQUE INDEX `project_event_attachments_index_0` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
 -- ===========================================================================
 -- 外部キー制約
@@ -196,9 +206,11 @@ ALTER TABLE `counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` 
 ALTER TABLE `document_categories` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
-ALTER TABLE `contract_documents` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`assignee_user_id`) REFERENCES `users` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`processing_status_id`) REFERENCES `contract_document_processing_statuses` (`id`);
+ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
+ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`document_category_id`) REFERENCES `document_categories` (`id`);
