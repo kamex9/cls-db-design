@@ -35,20 +35,20 @@ CREATE TABLE `project_statuses` (
 ) COMMENT = '案件ステータス';
 
 CREATE TABLE `project_event_types` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件イベントタイプID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件イベントタイプ名',
-  `description` TEXT COMMENT '案件イベントタイプの説明',
+  `id` SERIAL PRIMARY KEY COMMENT '案件イベント種別ID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件イベント種別名',
+  `description` TEXT COMMENT '案件イベント種別の説明',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件イベントタイプ';
+) COMMENT = '案件イベント種別';
 
-CREATE TABLE `project_user_roles` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件ユーザー役割ID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ユーザー役割名',
-  `description` TEXT COMMENT '案件ユーザー役割の説明',
+CREATE TABLE `project_assignment_types` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件アサイン種別ID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件アサイン種別名',
+  `description` TEXT COMMENT '案件アサイン種別の説明',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件ユーザー役割';
+) COMMENT = '案件アサイン種別';
 
 -- ===========================================================================
 -- テナント単位 プロダクト共通
@@ -154,22 +154,22 @@ CREATE TABLE `projects` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件';
 
-CREATE TABLE `project_users` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件ユーザーID',
+CREATE TABLE `project_assignments` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件アサインID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `user_id` BIGINT UNSIGNED NOT NULL COMMENT 'ユーザーID',
-  `role_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ユーザー役割ID',
+  `type_id` BIGINT UNSIGNED NOT NULL COMMENT '案件アサイン種別ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件ユーザー';
+) COMMENT = '案件アサイン';
 
 CREATE TABLE `project_events` (
   `id` SERIAL PRIMARY KEY COMMENT '案件イベントID',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
   `created_by` BIGINT UNSIGNED NOT NULL COMMENT '作成者ユーザーID',
-  `type_id` BIGINT UNSIGNED NOT NULL COMMENT '案件イベントタイプID',
+  `type_id` BIGINT UNSIGNED NOT NULL COMMENT '案件イベント種別ID',
   `comment_body` TEXT COMMENT 'コメント内容',
   `mail_body` TEXT COMMENT 'メール内容',
   `old_status_id` BIGINT UNSIGNED COMMENT '案件ステータス（変更前）',
@@ -193,7 +193,7 @@ CREATE TABLE `project_event_attachments` (
 CREATE UNIQUE INDEX `contract_document_counterparties_index_0` ON `contract_document_counterparties` (`contract_document_id`, `counterparty_id`);
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `contract_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_0` ON `contract_document_articles` (`contract_document_id`, `number`);
-CREATE UNIQUE INDEX `project_users_index_0` ON `project_users` (`project_id`, `user_id`, `role_id`);
+CREATE UNIQUE INDEX `project_assignments_index_0` ON `project_assignments` (`project_id`, `user_id`, `type_id`);
 CREATE UNIQUE INDEX `project_event_attachments_index_0` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
 -- ===========================================================================
@@ -218,10 +218,10 @@ ALTER TABLE `contract_document_articles` ADD FOREIGN KEY (`contract_document_id`
 ALTER TABLE `projects` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `projects` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `projects` ADD FOREIGN KEY (`status_id`) REFERENCES `project_statuses` (`id`);
-ALTER TABLE `project_users` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
-ALTER TABLE `project_users` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
-ALTER TABLE `project_users` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-ALTER TABLE `project_users` ADD FOREIGN KEY (`role_id`) REFERENCES `project_user_roles` (`id`);
+ALTER TABLE `project_assignments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `project_assignments` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
+ALTER TABLE `project_assignments` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `project_assignments` ADD FOREIGN KEY (`type_id`) REFERENCES `project_assignment_types` (`id`);
 ALTER TABLE `project_events` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_events` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `project_events` ADD FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);

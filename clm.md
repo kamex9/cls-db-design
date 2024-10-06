@@ -23,7 +23,7 @@ contract_document_processing_statuses
 contract_categories
 project_statuses
 project_event_types
-project_user_roles
+project_assignment_types
 ```
 各プロダクトテーブルから参照される、列挙型に該当する値を保持するテーブル。  
 Enum型での定義ではなくテーブルとして保持し外部テーブルからID参照する設計とした。理由は下記の通り。  
@@ -58,7 +58,7 @@ INSERT INTO `project_statuses` (`name`, `description`) VALUES
 ('closed_as_completed', '終了（成功）'),
 ('closed_as_rejected', '終了（却下）');
 
-INSERT INTO `project_user_roles` (`name`, `description`) VALUES
+INSERT INTO `project_assignment_types` (`name`, `description`) VALUES
 ('assignee', '担当者'),
 ('requester', '依頼者'),
 ('participant', '関係者');
@@ -122,13 +122,14 @@ contract_document_articles
 ## テナント単位 案件管理
 ```
 projects
-project_users
+project_assignments
 project_events
 project_event_attachments
 ```
 `projects` を中心に、1対N関係を表現するサブテーブルを設計した。以下補足を列挙。  
 
-- 依頼者・担当者・関係者はそれぞれに専用のテーブルを用意するかどうか迷ったが、それぞれへの案件との1対Nの関係を表現するのには一つのテーブルで事足りると判断し `project_users` のみとした
-- 役割の種別が増減する際は `project_user_roles` へのDML実行で済むため、サービス影響可能性のあるALTER等のDDL実行を回避できる。
+- 依頼者・担当者・関係者はそれぞれに専用のテーブルを用意するかどうか迷ったが、それぞれへの案件との1対Nの関係を表現するのには一つのテーブルで事足りると判断し `project_assignments` のみとした
+- 役割の種別が増減する際は `project_assignment_types` へのDML実行で済むため、サービス影響可能性のあるALTER等のDDL実行を回避できる。
 - 案件の起票、コメント、メール受信、ファイルアップロードをひっくるめて「イベント」と捉え、 `project_events` として1対N関係を表現した。
 - ファイルの添付情報の管理方針については、起票時添付、案件へのダイレクトアップロード、コメントへの添付といった複数パターンの考慮に悩んだが、すべての経路を「イベント」として捉えることで添付情報も「イベントに対する添付」としてイベントとの1対N関係として整理することができた。
+- 画面例にはなかったが、「未着手」などのステータス変更もイベントとしてタイムライン表示されると仮説を立て、`project_event_types` で考慮。

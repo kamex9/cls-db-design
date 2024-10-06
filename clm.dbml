@@ -125,19 +125,19 @@ ENUM "project_status" {
   "closed_as_rejected"
 }
 
-Table "project_users" {
+Table "project_assignments" {
   "id" SERIAL [pk, note: '案件ユーザーID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
   "user_id" BIGINT [not null, note: 'ユーザーID']
-  "role" project_users_role [not null, note: '役割種別']
+  "role" project_assignments_role [not null, note: '役割種別']
   indexes {
     (project_id, user_id, role) [unique]
   }
   Note: '案件ユーザー'
 }
 
-ENUM "project_users_role" {
+ENUM "project_assignments_role" {
   "assignee"
   "requester"
   "participant"
@@ -188,16 +188,16 @@ Ref:"tenants"."id" < "document_categories"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "contract_documents"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "contract_document_categories"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "projects"."tenant_id" [delete: cascade]
-Ref:"tenants"."id" < "project_users"."tenant_id" [delete: cascade]
+Ref:"tenants"."id" < "project_assignments"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "project_events"."tenant_id" [delete: cascade]
 Ref:"departments"."id" < "users"."department_id" [delete: cascade]
 Ref:"projects"."id" < "contract_documents"."project_id" [delete: cascade]
-Ref:"projects"."id" < "project_users"."project_id" [delete: cascade]
+Ref:"projects"."id" < "project_assignments"."project_id" [delete: cascade]
 Ref:"projects"."id" < "project_events"."project_id" [delete: cascade]
 Ref:"counterparties"."id" < "contract_documents"."counterparty_id" [delete: cascade]
 Ref:"counterparties"."id" < "projects"."counterparty_id" [delete: cascade]
 Ref:"users"."id" < "contract_documents"."assignee_user_id" [delete: cascade]
-Ref:"users"."id" < "project_users"."user_id" [delete: cascade]
+Ref:"users"."id" < "project_assignments"."user_id" [delete: cascade]
 Ref:"users"."id" < "project_events"."created_by" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_categories"."contract_document_id" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_articles"."contract_document_id" [delete: cascade]
