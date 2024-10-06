@@ -15,6 +15,7 @@ CREATE TABLE `users` (
   `reset_password_sent_at` DATETIME COMMENT 'パスワードリセットトークン送信日時',
   `first_name` VARCHAR(100) COMMENT 'ユーザーの名',
   `last_name` VARCHAR(100) COMMENT 'ユーザーの姓',
+  `department_id` BIGINT NOT NULL COMMENT '所属部署ID'
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時',
   FOREIGN KEY (`tenant_id`) REFERENCES `tenants`(`id`) ON DELETE CASCADE
