@@ -1,14 +1,50 @@
 -- ===========================================================================
--- 共通
+-- 全テナント共通
 -- ===========================================================================
 CREATE TABLE `tenants` (
   `id` SERIAL PRIMARY KEY COMMENT '一意識別子',
   `name` VARCHAR(255) NOT NULL COMMENT 'テナント名',
   `subdomain` VARCHAR(63) NOT NULL UNIQUE COMMENT 'テナント固有のサブドメイン',
+  `description` TEXT COMMENT 'テナントの説明',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = 'テナント';
 
+CREATE TABLE `contract_document_processing_statuses` (
+  `id` SERIAL PRIMARY KEY COMMENT '処理ステータスID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '処理ステータス名',
+  `description` TEXT COMMENT '処理ステータスの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '契約書処理ステータス';
+
+CREATE TABLE `project_statuses` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件ステータスID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ステータス名',
+  `description` TEXT COMMENT '案件ステータスの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件ステータス';
+
+CREATE TABLE `project_event_types` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件イベントタイプID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件イベントタイプ名',
+  `description` TEXT COMMENT '案件イベントタイプの説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件イベントタイプ';
+
+CREATE TABLE `project_user_roles` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件ユーザー役割ID',
+  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ユーザー役割名',
+  `description` TEXT COMMENT '案件ユーザー役割の説明',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件ユーザー役割';
+
+-- ===========================================================================
+-- テナント単位 プロダクト共通
+-- ===========================================================================
 CREATE TABLE `users` (
   `id` SERIAL PRIMARY KEY COMMENT '一意識別子',
   `tenant_id` BIGINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -72,14 +108,6 @@ CREATE TABLE `contract_documents` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書';
-
-CREATE TABLE `contract_document_processing_statuses` (
-  `id` SERIAL PRIMARY KEY COMMENT '処理ステータスID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '処理ステータス名',
-  `description` TEXT COMMENT '処理ステータスの説明',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '契約書処理ステータス';
 
 CREATE TABLE `contract_document_categories` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書と文書分類の組み合わせID',
@@ -149,30 +177,6 @@ CREATE TABLE `project_event_attachments` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件イベント添付';
-
-CREATE TABLE `project_statuses` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件ステータスID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ステータス名',
-  `description` TEXT COMMENT '案件ステータスの説明',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件ステータス';
-
-CREATE TABLE `project_user_roles` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件ユーザー役割ID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件ユーザー役割名',
-  `description` TEXT COMMENT '案件ユーザー役割の説明',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件ユーザー役割';
-
-CREATE TABLE `project_event_types` (
-  `id` SERIAL PRIMARY KEY COMMENT '案件イベントタイプID',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT '案件イベントタイプ名',
-  `description` TEXT COMMENT '案件イベントタイプの説明',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '案件イベントタイプ';
 
 -- ===========================================================================
 -- インデックス
