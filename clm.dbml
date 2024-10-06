@@ -34,6 +34,8 @@ Table "counterparties" {
   "company_code" VARCHAR(31) [not null, note: '企業コード']
   "official_name" VARCHAR(255) [not null, note: '企業名（正式名称）']
   "trade_name" VARCHAR(255) [note: '企業名（商号）']
+  // 自社も含めるべきかは要検討
+  "is_self" BOOLEAN [not null, note: '自社フラグ', default: false]
   Note: '取引先'
 }
 
@@ -52,7 +54,8 @@ Table "contract_documents" {
   "id" SERIAL [pk, note: '契約書ID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
-  "counterparty_id" BIGINT [not null, note: '取引先ID']
+  // projects側でも保持しているが、ここではAI解析結果としてあえて冗長に持たせる
+  "counterparty_id" BIGINT [note: '取引先ID']
   "file_name" VARCHAR(255) [not null, note: 'ファイル名']
   "file_path" VARCHAR(255) [not null, note: 'サーバー上のファイルパス']
   "is_fixed" BOOLEAN [not null, note: '締結版フラグ', default: false]
@@ -62,6 +65,7 @@ Table "contract_documents" {
   "contract_start_date" DATE [note: '契約開始日']
   "contract_end_date" DATE [note: '契約終了日']
   "contract_amount" DECIMAL(15,2) [note: '契約金額']
+  "contract_fixed_date" DATETIME [note: '契約締結日']
   "deleted_at" DATETIME [note: '削除日時']
   Note: '契約書'
 }
@@ -104,44 +108,28 @@ Table "projects" {
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "counterparty_id" BIGINT [not null, note: '取引先ID']
   "name" VARCHAR(255) [not null, note: '案件名称']
-  "progress_status" project_progress_status [not null, note: '進捗状況']
-  "description" TEXT [note: '案件概要']
-  "email" VARCHAR(255) [not null, note: '案件のメールアドレス']
-  "desired_deadline_date" DATE [note: '希望期限']
+  "status" project_status [not null, note: '案件状況', default: "to_do"]
   "created_by" BIGINT [not null, note: '作成者ユーザーID']
+  "description" TEXT [note: '案件概要']
+  "email" VARCHAR(255) [note: '案件のメールアドレス']
+  "desired_deadline_date" DATE [note: '希望期限']
   Note: '案件'
 }
 
-// Table "project_assignees" {
-//   "id" SERIAL [pk, note: '案件担当者ID']
-//   "tenant_id" BIGINT [not null, note: '所属テナントID']
-//   "project_id" BIGINT [not null, note: '案件ID']
-//   "user_id" BIGINT [not null, note: '担当者ユーザーID']
-//   Note: '案件担当者'
-// }
-
-// Table "project_requesters" {
-//   "id" SERIAL [pk, note: '案件依頼者ID']
-//   "tenant_id" BIGINT [not null, note: '所属テナントID']
-//   "project_id" BIGINT [not null, note: '案件ID']
-//   "user_id" BIGINT [not null, note: '依頼者ユーザーID']
-//   Note: '案件依頼者'
-// }
-
-// Table "project_participants" {
-//   "id" SERIAL [pk, note: '案件関係者ID']
-//   "tenant_id" BIGINT [not null, note: '所属テナントID']
-//   "project_id" BIGINT [not null, note: '案件ID']
-//   "user_id" BIGINT [not null, note: '関係者ユーザーID']
-//   Note: '案件関係者'
-// }
+ENUM "project_status" {
+  "to_do"
+  "in_progress"
+  "in_review"
+  "closed_as_completed"
+  "closed_as_rejected"
+}
 
 Table "project_users" {
   "id" SERIAL [pk, note: '案件ユーザーID']
   "tenant_id" BIGINT [not null, note: '所属テナントID']
   "project_id" BIGINT [not null, note: '案件ID']
   "user_id" BIGINT [not null, note: 'ユーザーID']
-  "role" project_users_role_type [not null, note: '役割種別']
+  "role" project_users_role [not null, note: '役割種別']
   indexes {
     (project_id, user_id, role) [unique]
   }
@@ -154,12 +142,36 @@ ENUM "project_users_role" {
   "participant"
 }
 
-ENUM "project_progress_status" {
-  "to_do"
-  "in_progress"
-  "in_review"
-  "closed_as_completed"
-  "closed_as_rejected"
+Table "project_events" {
+  "id" SERIAL [pk, note: '案件イベントID']
+  "tenant_id" BIGINT [not null, note: '所属テナントID']
+  "project_id" BIGINT [not null, note: '案件ID']
+  "created_by" BIGINT [not null, note: '作成者ユーザーID']
+  "type" project_events_type [not null, note: 'イベント種別']
+  "comment_body" TEXT [note: 'コメント内容']
+  "mail_body" TEXT [note: 'メール内容']
+  "old_status" project_status [note: '案件状況（変更前）']
+  "new_status" project_status [note: '案件状況（変更後）']
+  Note: '案件イベント'
+}
+
+ENUM "project_events_type" {
+  "open"
+  "open_with_attachements"
+  "upload_as_draft"
+  "upload_as_fixed"
+  "comment"
+  "comment_with_attachements"
+  "mail"
+  "change_status"
+}
+
+Table "project_event_attachements" {
+  "id" SERIAL [pk, note: '案件イベントID']
+  "tenant_id" BIGINT [not null, note: '所属テナントID']
+  "project_event_id" BIGINT [not null, note: '案件イベントID']
+  "contract_document_id" BIGINT [note: 'アップロードされた契約書ID']
+  Note: '案件イベント'
 }
 
 // ===========================================================
@@ -173,13 +185,17 @@ Ref:"tenants"."id" < "contract_documents"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "contract_document_categories"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "projects"."tenant_id" [delete: cascade]
 Ref:"tenants"."id" < "project_users"."tenant_id" [delete: cascade]
+Ref:"tenants"."id" < "project_events"."tenant_id" [delete: cascade]
 Ref:"departments"."id" < "users"."department_id" [delete: cascade]
 Ref:"projects"."id" < "contract_documents"."project_id" [delete: cascade]
 Ref:"projects"."id" < "project_users"."project_id" [delete: cascade]
+Ref:"projects"."id" < "project_events"."project_id" [delete: cascade]
 Ref:"counterparties"."id" < "contract_documents"."counterparty_id" [delete: cascade]
 Ref:"counterparties"."id" < "projects"."counterparty_id" [delete: cascade]
 Ref:"users"."id" < "contract_documents"."assignee_user_id" [delete: cascade]
 Ref:"users"."id" < "project_users"."user_id" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_categories"."contract_document_id" [delete: cascade]
-Ref:"document_categories"."id" < "contract_document_categories"."document_category_id" [delete: cascade]
 Ref:"contract_documents"."id" < "contract_document_articles"."contract_document_id" [delete: cascade]
+Ref:"contract_documents"."id" < "project_event_attachements"."contract_document_id" [delete: cascade]
+Ref:"document_categories"."id" < "contract_document_categories"."document_category_id" [delete: cascade]
+Ref:"project_events"."id" < "project_event_attachements"."project_event_id" [delete: cascade]
