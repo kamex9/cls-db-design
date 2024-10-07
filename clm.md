@@ -35,9 +35,9 @@ project_statuses
 project_event_types
 project_assignment_types
 ```
-各プロダクトテーブルから参照される、列挙型に該当する値を保持するテーブル。  
-主キーidの数値型はBIGINTだと大きすぎるため、TINYINTもしくはMEDIUMINTを選択。  
-Enum型での定義ではなくテーブルとして保持し外部テーブルからID参照する設計とした。理由は下記の通り。  
+テナントを問わずシステム全体で共通参照される値を保持するテーブル。  
+主キーidの数値型はBIGINTだと必要以上のストレージ利用となるため、TINYINTもしくはSMALLINTを明示的に選択。  
+各参照元テーブル側でのEnum型カラム定義ではなく、値の集合をテーブルとして格納し、各参照元テーブルからID外部キー参照する設計とした。理由は下記の通り。  
 - 新しい値を追加する際にスキーマ変更が不要
 - 値の変更や削除が容易
 - 複数テーブルからの共通参照時に整合性を保ちやすい
@@ -66,8 +66,9 @@ INSERT INTO `project_statuses` (`name`, `description`) VALUES
 ('to_do', '未着手'),
 ('in_progress', '進行中'),
 ('in_review', 'レビュー中'),
-('closed_as_completed', '終了（成功）'),
-('closed_as_rejected', '終了（却下）');
+('suspended', '一時停止');
+('completed', '終了（契約締結）'),
+('terminated', '終了（契約締結中止）');
 
 INSERT INTO `project_assignment_types` (`name`, `description`) VALUES
 ('assignee', '担当者'),
@@ -75,8 +76,8 @@ INSERT INTO `project_assignment_types` (`name`, `description`) VALUES
 ('participant', '関係者');
 
 INSERT INTO `project_event_types` (`name`, `description`) VALUES
-('open', '案件オープン'),
-('open_with_attachments', '添付ファイル付き案件オープン'),
+('open', '案件起票'),
+('open_with_attachments', '添付ファイル付き案件起票'),
 ('upload_as_draft', 'ドラフト版をアップロード'),
 ('upload_as_fixed', '締結版をアップロード'),
 ('comment', 'コメント'),
