@@ -103,7 +103,6 @@ CREATE TABLE `contract_documents` (
   `contract_end_date` DATE COMMENT '契約終了日',
   `contract_amount` DECIMAL(15,2) COMMENT '契約金額',
   `contract_fixed_date` DATE COMMENT '契約締結日',
-  `deleted_at` DATETIME COMMENT '削除日時',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書';
