@@ -151,7 +151,6 @@ CREATE TABLE `contract_document_articles` (
 CREATE TABLE `projects` (
   `id` SERIAL PRIMARY KEY COMMENT '案件ID',
   `tenant_id` MEDIUMINT UNSIGNED NOT NULL COMMENT '所属テナントID',
-  `counterparty_id` BIGINT UNSIGNED NOT NULL COMMENT '取引先ID',
   `name` VARCHAR(255) NOT NULL COMMENT '案件名称',
   `status_id` TINYINT UNSIGNED NOT NULL COMMENT '案件ステータスID',
   `created_by` BIGINT UNSIGNED NOT NULL COMMENT '作成者ユーザーID',
@@ -161,6 +160,15 @@ CREATE TABLE `projects` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '案件';
+
+CREATE TABLE `project_counterparties` (
+  `id` SERIAL PRIMARY KEY COMMENT '案件取引先ID',
+  `tenant_id` MEDIUMINT UNSIGNED NOT NULL COMMENT '所属テナントID',
+  `project_id` BIGINT UNSIGNED NOT NULL COMMENT '案件ID',
+  `counterparty_id` BIGINT UNSIGNED NOT NULL COMMENT '取引先ID',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '案件取引先';
 
 CREATE TABLE `project_assignments` (
   `id` SERIAL PRIMARY KEY COMMENT '案件アサインID',
@@ -202,6 +210,7 @@ CREATE UNIQUE INDEX `contract_document_assignees_index_0` ON `contract_document_
 CREATE UNIQUE INDEX `contract_document_counterparties_index_0` ON `contract_document_counterparties` (`contract_document_id`, `counterparty_id`);
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `contract_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_0` ON `contract_document_articles` (`contract_document_id`, `number`);
+CREATE UNIQUE INDEX `project_counterparties_index_0` ON `project_counterparties` (`project_id`, `counterparty_id`);
 CREATE UNIQUE INDEX `project_assignments_index_0` ON `project_assignments` (`project_id`, `user_id`, `type_id`);
 CREATE UNIQUE INDEX `project_event_attachments_index_0` ON `project_event_attachments` (`project_event_id`, `contract_document_id`);
 
@@ -227,8 +236,10 @@ ALTER TABLE `contract_document_categories` ADD FOREIGN KEY (`contract_category_i
 ALTER TABLE `contract_document_articles` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_document_articles` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 ALTER TABLE `projects` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
-ALTER TABLE `projects` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `projects` ADD FOREIGN KEY (`status_id`) REFERENCES `project_statuses` (`id`);
+ALTER TABLE `project_counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `project_counterparties` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
+ALTER TABLE `project_counterparties` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
 ALTER TABLE `project_assignments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `project_assignments` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
 ALTER TABLE `project_assignments` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
