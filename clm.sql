@@ -99,7 +99,6 @@ CREATE TABLE `contract_documents` (
   `is_fixed` BOOLEAN NOT NULL DEFAULT false COMMENT '締結版フラグ',
   `processing_status_id` TINYINT UNSIGNED NOT NULL COMMENT '処理ステータスID',
   `analysis_completed_at` DATETIME COMMENT '解析完了日時',
-  `assignee_user_id` BIGINT UNSIGNED COMMENT '契約書担当ユーザーID',
   `contract_start_date` DATE COMMENT '契約開始日',
   `contract_end_date` DATE COMMENT '契約終了日',
   `contract_amount` DECIMAL(15,2) COMMENT '契約金額',
@@ -109,6 +108,15 @@ CREATE TABLE `contract_documents` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
 ) COMMENT = '契約書';
 
+CREATE TABLE `contract_document_assignees` (
+  `id` SERIAL PRIMARY KEY COMMENT '契約書担当者ID',
+  `tenant_id` MEDIUMINT UNSIGNED NOT NULL COMMENT '所属テナントID',
+  `contract_document_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書ID',
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT '担当者ユーザーID',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
+) COMMENT = '契約書担当者';
+
 CREATE TABLE `contract_document_counterparties` (
   `id` SERIAL PRIMARY KEY COMMENT '契約書取引先ID',
   `tenant_id` MEDIUMINT UNSIGNED NOT NULL COMMENT '所属テナントID',
@@ -116,16 +124,16 @@ CREATE TABLE `contract_document_counterparties` (
   `counterparty_id` BIGINT UNSIGNED NOT NULL COMMENT '取引先ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '契約書と取引先の関係';
+) COMMENT = '契約書取引先';
 
 CREATE TABLE `contract_document_categories` (
-  `id` SERIAL PRIMARY KEY COMMENT '契約書と契約分類の組み合わせID',
+  `id` SERIAL PRIMARY KEY COMMENT '契約書契約分類ID',
   `tenant_id` MEDIUMINT UNSIGNED NOT NULL COMMENT '所属テナントID',
   `contract_document_id` BIGINT UNSIGNED NOT NULL COMMENT '契約書ID',
   `contract_category_id` SMALLINT UNSIGNED NOT NULL COMMENT '契約分類ID',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時'
-) COMMENT = '契約書と契約分類の関係';
+) COMMENT = '契約書契約分類';
 
 CREATE TABLE `contract_document_articles` (
   `id` SERIAL PRIMARY KEY COMMENT '条ID',
@@ -190,6 +198,7 @@ CREATE TABLE `project_event_attachments` (
 -- ===========================================================================
 -- インデックス
 -- ===========================================================================
+CREATE UNIQUE INDEX `contract_document_assignees_index_0` ON `contract_document_assignees` (`contract_document_id`, `user_id`);
 CREATE UNIQUE INDEX `contract_document_counterparties_index_0` ON `contract_document_counterparties` (`contract_document_id`, `counterparty_id`);
 CREATE UNIQUE INDEX `contract_document_categories_index_0` ON `contract_document_categories` (`contract_document_id`, `contract_category_id`);
 CREATE UNIQUE INDEX `contract_document_articles_index_0` ON `contract_document_articles` (`contract_document_id`, `number`);
@@ -205,8 +214,10 @@ ALTER TABLE `departments` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`i
 ALTER TABLE `counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
-ALTER TABLE `contract_documents` ADD FOREIGN KEY (`assignee_user_id`) REFERENCES `users` (`id`);
 ALTER TABLE `contract_documents` ADD FOREIGN KEY (`processing_status_id`) REFERENCES `contract_document_processing_statuses` (`id`);
+ALTER TABLE `contract_document_assignees` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `contract_document_assignees` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
+ALTER TABLE `contract_document_assignees` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`contract_document_id`) REFERENCES `contract_documents` (`id`);
 ALTER TABLE `contract_document_counterparties` ADD FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`);
