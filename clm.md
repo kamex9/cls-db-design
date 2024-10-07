@@ -118,6 +118,7 @@ HAVING self_count > 1;
 ## テナント単位 契約DB
 ```
 contract_documents
+contract_document_assignees
 contract_document_counterparties
 contract_document_categories
 contract_document_articles
@@ -125,7 +126,6 @@ contract_document_articles
 `contract_documents` を中心に、1対N関係を表現するサブテーブルを設計した。以下補足を列挙。  
 
 - 文書の登録経路は案件管理経由のみであると判断。よって文書1件に対して1件の案件が定まると想定。 → `contract_documents.project_id`
-- ★契約書の当事者は二者とは限らないと判断。 → `contract_document_counterparties`
 - 契約書の取引金額について、画面表示項目として存在しないことから税関連などのパターン考慮は除外した。
 - 契約書の取引金額について、日本円以外の考慮が不要であることはQA確認済み。
 - 契約書の取引金額について、1兆円未満までを小数点2位まで考慮。
@@ -135,6 +135,7 @@ contract_document_articles
 ## テナント単位 案件管理
 ```
 projects
+project_counterparties
 project_assignments
 project_events
 project_event_attachments
